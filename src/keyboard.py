@@ -50,9 +50,9 @@ class VKeyboard(tk.Frame):
                     tags=('key_text', 'K_' + layout[y][x])
                 )
         canvas.create_rectangle(
-            (_size[0] - 5 * _key_harea) // 2 + _padding,
+            (_size[0] - 6 * _key_harea) // 2 + _padding,
             _key_varea * len(layout) + _padding,
-            (_size[0] + 5 * _key_harea) // 2 - _padding,
+            (_size[0] + 6 * _key_harea) // 2 - _padding,
             _size[1] - _padding,
             fill=key_color, tags=('K_SPACE')
         )
