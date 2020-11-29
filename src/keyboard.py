@@ -57,13 +57,22 @@ class VKeyboard(tk.Frame):
             fill=key_color, tags=('K_SPACE')
         )
 
+    def clear_box(self):
+        self.text.delete(0, tk.END)
+
+    def copy_to_clipboard(self):
+        self.clipboard_clear()
+        self.clipboard_append(self.text.get())
+
     def _create_widgets(self):
         self.text_frame = tk.Frame(self, bg=self.bg_color)
         self.text = tk.Entry(self.text_frame)
         self.copy_img = tk.PhotoImage(file='rcs/round_content_copy_white_18dp.png')
         self.clear_img = tk.PhotoImage(file='rcs/round_clear_white_18dp.png')
         self.copy = tk.Button(self.text_frame, image=self.copy_img, bg=self.key_color)
+        self.copy['command'] = self.copy_to_clipboard
         self.clear = tk.Button(self.text_frame, image=self.clear_img, bg=self.key_color)
+        self.clear['command'] = self.clear_box
 
         self.suggest_frame = tk.Frame(self, bg=self.bg_color)
         self.suggest_text = [tk.Label(self.suggest_frame, textvariable=s) for s in self.suggestions]
