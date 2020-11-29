@@ -13,10 +13,11 @@ class CanvasKeyboard(tk.Canvas):
     """CanvasKeyboard used by VKeyboard."""
     def __init__(self, root = None, *, layout : tuple = kl_qwerty, key_color : str = 'white', text_color : str = 'black', **keyargs):
         super().__init__(root, keyargs)
-        self._draw_keyboard(layout=layout, key_color=key_color, text_color=text_color)
+        self.key_color = key_color
+        self.text_color = text_color
+        self._draw_keyboard(layout=layout)
 
-    def _draw_keyboard(self, *, layout : tuple, key_color : str, text_color : str,
-                                padding : float = 0.03, space_size : int = 6):
+    def _draw_keyboard(self, *, layout : tuple, padding : float = 0.03, space_size : int = 6):
         _size = (int(self['width']), int(self['height']))
         _max_letters = max([len(row) for row in layout])
         _padding = int(_size[1] * padding)
@@ -34,12 +35,12 @@ class CanvasKeyboard(tk.Canvas):
                     _key_coords[0] + _padding, _key_coords[1] + _padding,
                     _key_coords[0] + _key_harea - _padding,
                     _key_coords[1] + _key_varea - _padding,
-                    fill=key_color, tags=('key', 'K_' + layout[y][x])
+                    fill=self.key_color, tags=('key', 'K_' + layout[y][x])
                 )
                 self.create_text(
                     _left_offset + _row_offset + int(_key_harea * (x + 0.5)),
                     int(_key_varea * (y + 0.5)), text=layout[y][x],
-                    fill=text_color, justify='center', anchor='center',
+                    fill=self.text_color, justify='center', anchor='center',
                     tags=('key_text', 'K_' + layout[y][x])
                 )
         _space_offset = int((_max_letters - space_size) * 0.4 * _key_harea)
@@ -48,7 +49,7 @@ class CanvasKeyboard(tk.Canvas):
             _key_varea * len(layout) + _padding,
             _left_offset + _space_offset + space_size * _key_harea - _padding,
             _size[1] - _padding,
-            fill=key_color, tags=('K_SPACE')
+            fill=self.key_color, tags=('K_SPACE')
         )
 
 class VKeyboard(tk.Frame):
