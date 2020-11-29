@@ -11,17 +11,19 @@ kl_qwerty = (
 
 class VKeyboard(tk.Frame):
     """The VKeyboard is a Tk frame for a virtual keyboard."""
-    def __init__(self, root=None):
-        super().__init__(root)
+    def __init__(self, root = None, bg_color : str = "#63686e", key_color : str = "#4a4d4f", text_color : str = "#fafafa"):
+        super().__init__(root, bg=bg_color)
         self.master = root
         self.suggestions = [tk.StringVar() for i in range(4)]
         self.grid(column=0, row=0, sticky=(N,S,E,W), padx=5, pady=3)
+        self.bg_color = bg_color
+        self.key_color = key_color
+        self.text_color = text_color
         self._create_widgets()
 
-    def _draw_keyboard(canvas : tk.Canvas, *,
-                       layout : tuple = kl_qwerty,
-                       key_color : str = "#4a4d4f",
-                       text_color : str = "#fafafa"):
+    def _draw_keyboard(canvas : tk.Canvas, *, layout : tuple = kl_qwerty,
+                       key_color : str = 'white',
+                       text_color : str = 'black'):
         _size = (int(canvas['width']), int(canvas['height']))
         _max_letters = max([len(row) for row in layout])
         _padding = int(_size[1] * 0.03) # 5% padding
@@ -56,17 +58,17 @@ class VKeyboard(tk.Frame):
         )
 
     def _create_widgets(self):
-        self.text_frame = tk.Frame(self)
+        self.text_frame = tk.Frame(self, bg=self.bg_color)
         self.text = tk.Entry(self.text_frame)
         self.copy_img = tk.PhotoImage(file='rcs/round_content_copy_white_18dp.png')
         self.clear_img = tk.PhotoImage(file='rcs/round_clear_white_18dp.png')
-        self.copy = tk.Button(self.text_frame, image=self.copy_img)
-        self.clear = tk.Button(self.text_frame, image=self.clear_img)
+        self.copy = tk.Button(self.text_frame, image=self.copy_img, bg=self.key_color)
+        self.clear = tk.Button(self.text_frame, image=self.clear_img, bg=self.key_color)
 
-        self.suggest_frame = tk.Frame(self)
+        self.suggest_frame = tk.Frame(self, bg=self.bg_color)
         self.suggest_text = [tk.Label(self.suggest_frame, textvariable=s) for s in self.suggestions]
 
-        self.canvas = tk.Canvas(self, width=850, height=378)
+        self.canvas = tk.Canvas(self, width=850, height=378, bg=self.bg_color)
 
         self.text_frame.grid(column=0, row=0, sticky=(N,S,E,W), padx=5, pady=5)
         self.text.grid(column=0, row=0, rowspan=2, sticky=(N,S,E,W), padx=5, pady=5)
@@ -79,7 +81,7 @@ class VKeyboard(tk.Frame):
         self.text_frame.columnconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
-        VKeyboard._draw_keyboard(self.canvas)
+        VKeyboard._draw_keyboard(self.canvas, key_color=self.key_color, text_color=self.text_color)
 
 
 if __name__ == "__main__":
