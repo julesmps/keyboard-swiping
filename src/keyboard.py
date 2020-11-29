@@ -9,24 +9,17 @@ kl_qwerty = (
     ('Z', 'X', 'C', 'V', 'B', 'N', 'M')
 )
 
-class VKeyboard(tk.Frame):
-    """The VKeyboard is a Tk frame for a virtual keyboard."""
-    def __init__(self, root = None, bg_color : str = "#63686e", key_color : str = "#4a4d4f", text_color : str = "#fafafa"):
-        super().__init__(root, bg=bg_color)
-        self.master = root
-        self.suggestions = [tk.StringVar() for i in range(4)]
-        self.grid(column=0, row=0, sticky=(N,S,E,W), padx=5, pady=3)
-        self.bg_color = bg_color
-        self.key_color = key_color
-        self.text_color = text_color
-        self._create_widgets()
+class CanvasKeyboard(tk.Canvas):
+    """CanvasKeyboard used by VKeyboard."""
+    def __init__(self, root = None, *, layout : tuple = kl_qwerty, key_color : str = 'white', text_color : str = 'black', **keyargs):
+        super().__init__(root, keyargs)
+        self._draw_keyboard(layout=layout, key_color=key_color, text_color=text_color)
 
-    def _draw_keyboard(canvas : tk.Canvas, *, layout : tuple = kl_qwerty,
-                       key_color : str = 'white',
-                       text_color : str = 'black'):
-        _size = (int(canvas['width']), int(canvas['height']))
+    def _draw_keyboard(self, *, layout : tuple, key_color : str, text_color : str,
+                                padding : float = 0.03, space_size : int = 6):
+        _size = (int(self['width']), int(self['height']))
         _max_letters = max([len(row) for row in layout])
-        _padding = int(_size[1] * 0.03) # 5% padding
+        _padding = int(_size[1] * padding)
         _key_varea = _size[1] // (len(layout) + 1)
         _key_harea = min(_key_varea, _size[0] // _max_letters)
         _left_offset = _size[0] - _key_harea * _max_letters
@@ -37,25 +30,40 @@ class VKeyboard(tk.Frame):
             for x in range(len(layout[y])):
                 _key_coords = \
                     (_left_offset + _row_offset + _key_harea * x, _key_varea * y)
-                canvas.create_rectangle(
+                self.create_rectangle(
                     _key_coords[0] + _padding, _key_coords[1] + _padding,
                     _key_coords[0] + _key_harea - _padding,
                     _key_coords[1] + _key_varea - _padding,
                     fill=key_color, tags=('key', 'K_' + layout[y][x])
                 )
-                canvas.create_text(
+                self.create_text(
                     _left_offset + _row_offset + int(_key_harea * (x + 0.5)),
                     int(_key_varea * (y + 0.5)), text=layout[y][x],
                     fill=text_color, justify='center', anchor='center',
                     tags=('key_text', 'K_' + layout[y][x])
                 )
-        canvas.create_rectangle(
-            (_size[0] - 6 * _key_harea) // 2 + _padding,
+        _space_offset = int((_max_letters - space_size) * 0.4 * _key_harea)
+        self.create_rectangle(
+            _left_offset + _space_offset + _padding,
             _key_varea * len(layout) + _padding,
-            (_size[0] + 6 * _key_harea) // 2 - _padding,
+            _left_offset + _space_offset + space_size * _key_harea - _padding,
             _size[1] - _padding,
             fill=key_color, tags=('K_SPACE')
         )
+
+class VKeyboard(tk.Frame):
+    """The VKeyboard is a Tk frame for a virtual keyboard."""
+    def __init__(self, root = None, *, bg_color : str = "#63686e",
+                                       key_color : str = "#4a4d4f",
+                                       text_color : str = "#fafafa"):
+        super().__init__(root, bg=bg_color)
+        self.master = root
+        self.suggestions = [tk.StringVar() for i in range(4)]
+        self.grid(column=0, row=0, sticky=(N,S,E,W), padx=5, pady=3)
+        self.bg_color = bg_color
+        self.key_color = key_color
+        self.text_color = text_color
+        self._create_widgets()
 
     def clear_box(self):
         self.text.delete(0, tk.END)
@@ -75,9 +83,13 @@ class VKeyboard(tk.Frame):
         self.clear['command'] = self.clear_box
 
         self.suggest_frame = tk.Frame(self, bg=self.bg_color)
-        self.suggest_text = [tk.Label(self.suggest_frame, textvariable=s) for s in self.suggestions]
+        self.suggest_text = [
+            tk.Label(self.suggest_frame, textvariable=s, bg=self.bg_color, fg=self.text_color)
+                for s in self.suggestions
+        ]
 
-        self.canvas = tk.Canvas(self, width=850, height=378, bg=self.bg_color)
+        self.canvas = CanvasKeyboard(self, width=850, height=378,
+            bg=self.bg_color, key_color=self.key_color, text_color=self.text_color)
 
         self.text_frame.grid(column=0, row=0, sticky=(N,S,E,W), padx=5, pady=5)
         self.text.grid(column=0, row=0, rowspan=2, sticky=(N,S,E,W), padx=5, pady=5)
@@ -89,9 +101,6 @@ class VKeyboard(tk.Frame):
         self.canvas.grid(column=0, row=2, padx=55, pady=3)
         self.text_frame.columnconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-
-        VKeyboard._draw_keyboard(self.canvas, key_color=self.key_color, text_color=self.text_color)
-
 
 if __name__ == "__main__":
     root = tk.Tk()
