@@ -1,2 +1,3 @@
 /.git/
-/bazel-*/
+/**/bazel-*/
+/**/__pycache__/
