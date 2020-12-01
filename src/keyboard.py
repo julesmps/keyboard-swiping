@@ -9,13 +9,65 @@ kl_qwerty = (
     ('Z', 'X', 'C', 'V', 'B', 'N', 'M')
 )
 
+def dist_square(r1 : tuple, r2 : tuple) -> int:
+    assert len(r1) == len(r2), "r1 and r2 must be the same size"
+    return sum([(i2 - i1) ** 2 for (i1,i2) in zip(r1,r2)])
+
+def init_keymap(layout : tuple) -> dict:
+    map = {}
+    for row in layout:
+        for key in row:
+            map[f'K_{key}'] = key
+    return map
+
 class CanvasKeyboard(tk.Canvas):
     """CanvasKeyboard used by VKeyboard."""
-    def __init__(self, root = None, *, layout : tuple = kl_qwerty, key_color : str = 'white', text_color : str = 'black', **keyargs):
+    def __init__(self, root = None, *, layout : tuple = kl_qwerty, key_color : str = 'white', text_color : str = 'black', swipe_color : str = 'blue', delta : int = 5, **keyargs):
         super().__init__(root, keyargs)
+        self.master = root
         self.key_color = key_color
         self.text_color = text_color
+        self.swipe_color = swipe_color
+        self.previous = None
+        self.in_movement = False
+        self.delta = delta
+        self.delta_square = delta ** 2
+        self.keymap = init_keymap(layout)
+        self.keymap['K_SPACE'] = ' '
         self._draw_keyboard(layout=layout)
+        self._create_bindings()
+
+    def _swiping(self, event : tk.Event):
+        if self.previous == None:
+            self.previous = (event.x, event.y)
+        elif dist_square((event.x, event.y), self.previous) > self.delta_square:
+            self.in_movement = True
+            self.create_line(self.previous[0], self.previous[1], event.x, event.y, width=3, fill=self.swipe_color, tags=('swipe'))
+            self.previous = (event.x, event.y)
+        else:
+            return # step too small --- ignore
+        # TODO: send letter information
+
+    def _release(self, event : tk.Event):
+        if self.in_movement:
+            self.delete('swipe')
+            self.previous = None
+            self.in_movement = False
+            # TODO: send end-of-path signal
+        else:
+            _match = self.find_overlapping(event.x - self.delta,
+                                           event.y - self.delta,
+                                           event.x + self.delta,
+                                           event.y + self.delta
+            )
+            if _match:
+                for tag in self.gettags(_match[0]):
+                    if tag in self.keymap:
+                        self.master.write(self.keymap[tag])
+
+    def _create_bindings(self):
+        self.bind('<Button1-Motion>', lambda e: self._swiping(e))
+        self.bind('<ButtonRelease-1>', lambda e: self._release(e))
 
     def _draw_keyboard(self, *, layout : tuple, padding : float = 0.03, space_size : int = 6):
         _size = (int(self['width']), int(self['height']))
