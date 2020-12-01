@@ -66,6 +66,9 @@ class VKeyboard(tk.Frame):
         self.text_color = text_color
         self._create_widgets()
 
+    def write(self, msg : str):
+        self.text.insert(tk.END, msg)
+
     def clear_box(self):
         self.text.delete(0, tk.END)
 
