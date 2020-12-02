@@ -3,4 +3,5 @@ cc_library(
   name = "trie",
   hdrs = ["src/trie.h"],
   srcs = ["src/trie.cpp"],
+  visibility = ["//src/test:__pkg__"],
 )
