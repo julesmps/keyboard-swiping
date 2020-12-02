@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""keyboard.py: A python module for a virtual keyboard which supports swiping"""
+__author__ = "Juliana Pacheco"
+__status__ = "Development"
+
 import tkinter as tk
 from tkinter import N,S,E,W
 
