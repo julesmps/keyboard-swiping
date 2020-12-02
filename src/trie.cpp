@@ -1,7 +1,7 @@
 // Juliana Pacheco
 // University of Florida
 
-#include "trie.h"
+#include "src/trie.h"
 
 #include <cctype>
 #include <functional>
