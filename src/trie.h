@@ -5,13 +5,44 @@
 #define KEYBOARD_SWIPING_TRIE_H
 
 #include <functional>
+#include <iterator>
 #include <map>
 #include <string>
 #include <vector>
 
 class Trie {
+protected:
+  template <typename T>
+  class NodeIterator {
+  public:
+    using value_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using iterator_category = std::forward_iterator_tag;
+
+    NodeIterator(pointer ptr = nullptr) : ptr_(ptr) {}
+    NodeIterator(const NodeIterator<T>&) = default;
+    ~NodeIterator(){}
+    NodeIterator<T>& operator=(const NodeIterator<T>&) = default;
+    NodeIterator<T>& operator=(pointer ptr) { ptr_=ptr; return *this; }
+
+    operator bool() const { return ptr_; }
+    bool operator==(const NodeIterator<T>& rhs) const { return ptr_ == rhs.ptr_; }
+    bool operator!=(const NodeIterator<T>& rhs) const { return ptr_ != rhs.ptr_; }
+    NodeIterator operator[](char c) const { return NodeIterator<T>(ptr_->get_child(c)); }
+    value_type& operator*() { return *ptr_; }
+    const value_type& operator*() const { return *ptr_; }
+    pointer operator->() { return ptr_; }
+
+  protected:
+    pointer ptr_;
+  };
+
 public:
   class Node;
+  typedef NodeIterator<Node> iterator;
+  typedef NodeIterator<const Node> const_iterator;
+
   Trie();
   Trie(const Trie& rhs);
   Trie& operator=(const Trie& rhs);
@@ -20,12 +51,17 @@ public:
   bool empty() const;
   std::size_t size() const;
 
-  void clear();
-  Node* insert(const std::string& word);
-  void erase(const std::string& word);
+  iterator begin() { return iterator(root_); }
+  const_iterator cbegin() const { return const_iterator(root_); }
+  iterator end() { return iterator(); }
+  const_iterator cend() const { return const_iterator(); }
 
-  const Node* find(const std::string& word) const;
-  Node* find(const std::string& word);
+  void clear();
+  iterator insert(const std::string& word);
+  void erase(const std::string& word); // TODO: return iterator
+
+  const_iterator find(const std::string& word) const;
+  iterator find(const std::string& word);
   bool contains(const std::string& word) const;
 
 private:

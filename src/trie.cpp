@@ -67,9 +67,9 @@ void Trie::clear() {
   root_ = new Node();
 }
 
-Node* Trie::insert(const std::string& word) {
+Trie::iterator Trie::insert(const std::string& word) {
   if(!word_is_valid(word))
-    return nullptr;
+    return end();
 
   Node* current = root_;
   char prev_c = (char) 0;
@@ -83,20 +83,20 @@ Node* Trie::insert(const std::string& word) {
   }
   size_++;
   current->insert_word(word);
-  return current;
+  return iterator(current);
 }
 
 void Trie::erase(const std::string& word) {
-  Node* match = find(word);
-  if(match != nullptr) {
+  iterator match = find(word);
+  if(match != end()) {
     match->remove_word(word);
     // TODO: if match is a leaf that is now empty, delete
   }
 }
 
-const Node* Trie::find(const std::string& word) const {
+Trie::const_iterator Trie::find(const std::string& word) const {
   if(!word_is_valid(word))
-    return nullptr;
+    return cend();
 
   Node* current = root_;
   char prev_c = (char) 0;
@@ -105,20 +105,21 @@ const Node* Trie::find(const std::string& word) const {
     if(std::isalpha((unsigned char) c) && prev_c != c) {
       lower_c = std::tolower((unsigned char) c);
       if(current->get_child(lower_c) == nullptr)
-        return nullptr;
+        return cend();
       current = current->get_child(lower_c);
     }
     prev_c = c;
   }
-  return current;
+  return const_iterator(current);
 }
 
-Node* Trie::find(const std::string& word) {
-  return const_cast<Node*>(static_cast<const Trie&>(*this).find(word));
+Trie::iterator Trie::find(const std::string& word) {
+  const_iterator result = static_cast<const Trie&>(*this).find(word);
+  return const_cast<Node*>(result.operator->());
 }
 
 bool Trie::contains(const std::string& word) const {
-  return find(word) != nullptr;
+  return find(word) != cend();
 }
 
 bool Trie::word_is_valid(const std::string& word) {
