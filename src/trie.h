@@ -80,6 +80,7 @@ public:
 
   void clear() { clear_words(); clear_children(); }
 
+  bool has_words() const { return !words_.empty(); }
   bool contains_word(const std::string& word) const;
   void insert_word(const std::string& word) { words_.push_back(word); }
   void remove_word(const std::string& word);
