@@ -58,7 +58,7 @@ Trie::~Trie() {
 
 bool Trie::empty() const { return size_ == 0; }
 
-std::size_t Trie::size() const { return size_; }
+Trie::size_type Trie::size() const { return size_; }
 
 void Trie::clear() {
   size_ = 0;
@@ -73,12 +73,14 @@ Trie::iterator Trie::insert(const std::string& word) {
 
   Node* current = root_;
   char prev_c = (char) 0;
-  char lower_c;
   for(char c : word) {
     if(!std::isalpha((unsigned char) c) || prev_c == c)
       continue;
-    lower_c = std::tolower((unsigned char) c);
-    current = current->insert_child(lower_c);
+    c = std::tolower((unsigned char) c);
+    if(current->contains_child(c))
+      current = current->get_child(c);
+    else
+      current = current->insert_child(c);
     prev_c = c;
   }
   size_++;
@@ -119,7 +121,10 @@ Trie::iterator Trie::find(const std::string& word) {
 }
 
 bool Trie::contains(const std::string& word) const {
-  return find(word) != cend();
+  const_iterator result = find(word);
+  if(result == cend())
+    return false;
+  return result->contains_word(word);
 }
 
 bool Trie::word_is_valid(const std::string& word) {

@@ -42,6 +42,7 @@ public:
   class Node;
   typedef NodeIterator<Node> iterator;
   typedef NodeIterator<const Node> const_iterator;
+  typedef std::size_t size_type;
 
   Trie();
   Trie(const Trie& rhs);
@@ -49,7 +50,7 @@ public:
   ~Trie();
 
   bool empty() const;
-  std::size_t size() const;
+  size_type size() const;
 
   iterator begin() { return iterator(root_); }
   const_iterator cbegin() const { return const_iterator(root_); }
@@ -66,9 +67,11 @@ public:
 
 private:
   static bool word_is_valid(const std::string& word);
+  const_iterator find_common(const std::string& word,
+        std::function<void(const Node*)> func) const;
 
   Node* root_;
-  std::size_t size_;
+  size_type size_;
 };
 
 class Trie::Node {
