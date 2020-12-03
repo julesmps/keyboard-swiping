@@ -93,3 +93,71 @@ TEST_F(TrieSmallTest, TraverseToAnt) {
   ASSERT_NE(iter, const_trie.cend());
   EXPECT_TRUE(contains(trie, target));
 }
+
+TEST_F(TrieSmallTest, RemoveChildNoSiblings) {
+  std::string target = "nose";
+  Trie::size_type size = trie.size();
+  ASSERT_NE(size, 0);
+  ASSERT_TRUE(contains(trie, target));
+  Trie::iterator no = trie.find("no");
+  ASSERT_NE(no, trie.end());
+  EXPECT_TRUE(no->has_children());
+  EXPECT_EQ(trie.erase(target), trie.end());
+  EXPECT_FALSE(no->has_children());
+  EXPECT_FALSE(contains(trie, target));
+  EXPECT_EQ(trie.size(), size-1);
+}
+
+TEST_F(TrieSmallTest, RemoveChildHasSiblings) {
+  std::string target = "ant";
+  Trie::size_type size = trie.size();
+  ASSERT_NE(size, 0);
+  ASSERT_TRUE(contains(trie, target));
+  EXPECT_TRUE(contains(trie, "any"));
+  EXPECT_TRUE(contains(trie, "an"));
+  EXPECT_EQ(trie.erase(target), trie.end());
+  EXPECT_FALSE(contains(trie, target));
+  EXPECT_TRUE(contains(trie, "any"));
+  EXPECT_TRUE(contains(trie, "an"));
+  EXPECT_EQ(trie.size(), size-1);
+}
+
+TEST_F(TrieSmallTest, RemoveOtherWords) {
+  std::string target = "in";
+  std::string twin = "inn";
+  Trie::size_type size = trie.size();
+  ASSERT_NE(size, 0);
+  ASSERT_TRUE(contains(trie, target));
+  ASSERT_TRUE(contains(trie, twin));
+  Trie::iterator it = trie.find(target);
+  ASSERT_NE(it, trie.end());
+  EXPECT_EQ(trie.find(twin), it);
+  ASSERT_EQ(trie.erase(target), it);
+  EXPECT_FALSE(contains(trie, target));
+  EXPECT_TRUE(contains(trie, twin));
+  EXPECT_TRUE(it->contains_word(twin));
+  EXPECT_EQ(trie.size(), size-1);
+}
+
+TEST_F(TrieSmallTest, RemoveNonLeaf) {
+  std::string target = "no";
+  std::string child = "nose";
+  Trie::size_type size = trie.size();
+  ASSERT_NE(size, 0);
+  ASSERT_TRUE(contains(trie, target));
+  ASSERT_TRUE(contains(trie, child));
+  EXPECT_NE(trie.erase(target), trie.end());
+  EXPECT_FALSE(contains(trie, target));
+  EXPECT_TRUE(contains(trie, child));
+  EXPECT_EQ(trie.size(), size-1);
+}
+
+TEST_F(TrieSmallTest, RemoveNonElement) {
+  const std::vector<std::string> nin
+      = { "dog", "castle", "rope", "inward", "not", "dot" };
+  for(const std::string& s : nin) {
+    Trie::size_type size = trie.size();
+    EXPECT_EQ(trie.erase(s), trie.end());
+    EXPECT_EQ(trie.size(), size);
+  }
+}

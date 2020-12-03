@@ -59,7 +59,7 @@ public:
 
   void clear();
   iterator insert(const std::string& word);
-  void erase(const std::string& word); // TODO: return iterator
+  iterator erase(const std::string& word);
 
   const_iterator find(const std::string& word) const;
   iterator find(const std::string& word);
@@ -95,9 +95,11 @@ public:
   const Node* get_child(char c) const;
   Node* get_child(char c);
   Node* insert_child(char c);
+  void remove_child(char c);
   void clear_children() { delete_children(); children_.clear(); }
   void do_on_children(const std::function<void(char,const Node*)>& func) const;
   void do_on_children(const std::function<void(char,Node*)>& func);
+  bool do_on_children_while(const std::function<bool(char,const Node*)>& func) const;
 
 private:
   void delete_children();

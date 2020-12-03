@@ -5,6 +5,8 @@
 
 #include <cctype>
 #include <functional>
+#include <stack>
+#include <utility>
 
 using Node = Trie::Node;
 
@@ -32,6 +34,18 @@ bool is_allowable(char c) {
   return contains(ALLOWED_CHAR_G, c,
             [](std::function<bool(char)> f, char c) -> bool { return f(c); })
       || contains(ALLOWED_CHAR_S, c);
+}
+
+std::pair<bool,char> find_key(const Node& node, const Node* child) {
+  char key = 0;
+  bool result = node.do_on_children_while([&](char c, const Node* n) -> bool {
+    if(child == n) {
+      key = c;
+      return true;
+    }
+    return false;
+  });
+  return { result, key };
 }
 
 } /* anonymous */
@@ -88,31 +102,36 @@ Trie::iterator Trie::insert(const std::string& word) {
   return iterator(current);
 }
 
-void Trie::erase(const std::string& word) {
-  iterator match = find(word);
+Trie::iterator Trie::erase(const std::string& word) {
+  std::stack<Node*> path;
+  iterator match = const_cast<Node*>(find_common(word, [&](const Node* n) {
+      path.push(const_cast<Node*>(n));
+    }
+  ).operator->());
+  path.push(match.operator->());
+
   if(match != end()) {
     match->remove_word(word);
-    // TODO: if match is a leaf that is now empty, delete
+    size_--;
+    if(match->has_words() || match->has_children())
+      return match;
+
+    // delete empty nodes to root
+    while(!path.empty()&& !path.top()->has_words() && !path.top()->has_children()) {
+      Node* to_del = path.top();
+      path.pop();
+      if(to_del == root_ || path.empty()) break; // don't delete root
+      Node* parent = path.top();
+      std::pair<bool,char> key = find_key(*parent, to_del);
+      if(key.first)
+        parent->remove_child(key.second);
+    }
   }
+  return end();
 }
 
 Trie::const_iterator Trie::find(const std::string& word) const {
-  if(!word_is_valid(word))
-    return cend();
-
-  Node* current = root_;
-  char prev_c = (char) 0;
-  char lower_c;
-  for(char c : word) {
-    if(std::isalpha((unsigned char) c) && prev_c != c) {
-      lower_c = std::tolower((unsigned char) c);
-      if(current->get_child(lower_c) == nullptr)
-        return cend();
-      current = current->get_child(lower_c);
-    }
-    prev_c = c;
-  }
-  return const_iterator(current);
+  return find_common(word, [](const Node*) {});
 }
 
 Trie::iterator Trie::find(const std::string& word) {
@@ -133,6 +152,25 @@ bool Trie::word_is_valid(const std::string& word) {
       return false;
   }
   return true;
+}
+
+Trie::const_iterator Trie::find_common(const std::string& word, std::function<void(const Node*)> func) const {
+  if(!word_is_valid(word))
+    return cend();
+
+  Node* current = root_;
+  char prev_c = (char) 0;
+  for(char c : word) {
+    if(std::isalpha((unsigned char) c) && prev_c != c) {
+      c = std::tolower((unsigned char) c);
+      if(current->get_child(c) == nullptr)
+        return cend();
+      func(current);
+      current = current->get_child(c);
+      prev_c = c;
+    }
+  }
+  return const_iterator(current);
 }
 
 Node::Node(const Node& rhs) : Node() { *this = rhs; }
@@ -191,9 +229,25 @@ Node* Node::insert_child(char c) {
   return child;
 }
 
+void Node::remove_child(char c) {
+  auto child = children_.find(c);
+  if(child != children_.end()) {
+    if(child->second != nullptr)
+      delete child->second;
+    children_.erase(child);
+  }
+}
+
 void Node::do_on_children(const std::function<void(char,const Node*)>& func) const {
   for(auto cit = children_.cbegin(); cit != children_.cend(); ++cit)
     func(cit->first, cit->second);
+}
+
+bool Node::do_on_children_while(const std::function<bool(char,const Node*)>& func) const {
+  for(auto cit = children_.cbegin(); cit != children_.cend(); ++cit)
+    if(func(cit->first, cit->second))
+      return true;
+  return false;
 }
 
 void Node::do_on_children(const std::function<void(char,Node*)>& func) {
