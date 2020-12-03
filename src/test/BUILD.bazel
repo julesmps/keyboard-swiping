@@ -1,0 +1,9 @@
+
+cc_test(
+  name = "trie-test",
+  srcs = ["trie_test.cpp"],
+  deps = [
+    "//:trie",
+    "@googletest//:gtest_main",
+  ],
+)
