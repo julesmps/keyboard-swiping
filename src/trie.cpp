@@ -124,7 +124,7 @@ bool Trie::contains(const std::string& word) const {
 
 bool Trie::word_is_valid(const std::string& word) {
   for(char c : word) {
-    if(!std::isalpha((unsigned char) c) || !is_allowable(c))
+    if(!std::isalpha((unsigned char) c) && !is_allowable(c))
       return false;
   }
   return true;

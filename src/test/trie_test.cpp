@@ -87,7 +87,7 @@ TEST_F(TrieSmallTest, TraverseToAnt) {
   const std::string target = "ant";
   for(char c : target) {
     ASSERT_NE(iter, const_trie.cend());
-    EXPECT_FALSE(contains(trie, target));
+    EXPECT_FALSE(iter->contains_word(target));
     iter = iter[c];
   }
   ASSERT_NE(iter, const_trie.cend());
