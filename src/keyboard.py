@@ -24,6 +24,12 @@ def init_keymap(layout : tuple) -> dict:
             map[f'K_{key}'] = key
     return map
 
+def get_first_keycode(strings : tuple) -> str:
+    for s in strings:
+        if s.startswith('K_'):
+            return s
+    return ""
+
 class CanvasKeyboard(tk.Canvas):
     """CanvasKeyboard used by VKeyboard."""
     def __init__(self, root = None, *, layout : tuple = kl_qwerty, key_color : str = 'white', text_color : str = 'black', swipe_color : str = 'blue', delta : int = 5, **keyargs):
@@ -32,7 +38,8 @@ class CanvasKeyboard(tk.Canvas):
         self.key_color = key_color
         self.text_color = text_color
         self.swipe_color = swipe_color
-        self.previous = None
+        self.prev_coords = None
+        self.prev_letters = []
         self.in_movement = False
         self.delta = delta
         self.delta_square = delta ** 2
@@ -40,24 +47,46 @@ class CanvasKeyboard(tk.Canvas):
         self.keymap['K_SPACE'] = ' '
         self._draw_keyboard(layout=layout)
         self._create_bindings()
+        # must be evaluated after _draw_keyboard is executed
+        self.key_delta = min(self.key_width, self.key_height) // 2
+
+    def _get_letters(self, x : int, y : int) -> list:
+        _keys = self.find_overlapping(x - self.key_delta,
+                                         y - self.key_delta,
+                                         x + self.key_delta,
+                                         y + self.key_delta
+        )
+        _letters = []
+        for id in _keys:
+            tags = self.gettags(id)
+            keycode = get_first_keycode(tags)
+            if 'key' in tags and keycode:
+                _letters.append(self.keymap[keycode])
+        return _letters
 
     def _swiping(self, event : tk.Event):
-        if self.previous == None:
-            self.previous = (event.x, event.y)
-        elif dist_square((event.x, event.y), self.previous) > self.delta_square:
+        if self.prev_coords == None:
+            self.prev_coords = (event.x, event.y)
+        elif dist_square((event.x, event.y), self.prev_coords) > self.delta_square:
             self.in_movement = True
-            self.create_line(self.previous[0], self.previous[1], event.x, event.y, width=3, fill=self.swipe_color, tags=('swipe'))
-            self.previous = (event.x, event.y)
+            self.create_line(self.prev_coords[0], self.prev_coords[1], event.x, event.y, width=3, fill=self.swipe_color, tags=('swipe'))
+            self.prev_coords = (event.x, event.y)
         else:
             return # step too small --- ignore
         # TODO: send letter information
+        _letters = self._get_letters(*self.prev_coords)
+        if _letters != self.prev_letters:
+            print(_letters)
+            self.prev_letters = _letters
 
     def _release(self, event : tk.Event):
         if self.in_movement:
             self.delete('swipe')
-            self.previous = None
+            self.prev_coords = None
             self.in_movement = False
             # TODO: send end-of-path signal
+            self.prev_letters = []
+            print([])
         else:
             _match = self.find_overlapping(event.x - self.delta,
                                            event.y - self.delta,
@@ -79,6 +108,8 @@ class CanvasKeyboard(tk.Canvas):
         _padding = int(_size[1] * padding)
         _key_varea = _size[1] // (len(layout) + 1)
         _key_harea = min(_key_varea, _size[0] // _max_letters)
+        self.key_height = _key_varea - 2 * _padding
+        self.key_width = _key_harea - 2 * _padding
         _left_offset = _size[0] - _key_harea * _max_letters
         assert _left_offset >= 0, "_left_offset cannot be negative"
 
