@@ -6,6 +6,7 @@ __status__ = "Development"
 
 import tkinter as tk
 from tkinter import N,S,E,W
+import threading, queue
 
 kl_qwerty = (
     ('Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'),
@@ -30,6 +31,22 @@ def get_first_keycode(strings : tuple) -> str:
             return s
     return ""
 
+g_keyswipe = queue.SimpleQueue()
+
+def write_changes(e : threading.Event):
+    prev_letters = []
+    while True:
+        if e.is_set():
+            break
+        try:
+            letters = g_keyswipe.get(timeout=1)
+            if letters != prev_letters:
+                print(letters)
+                prev_letters = letters
+        except Exception as _:
+            pass
+
+
 class CanvasKeyboard(tk.Canvas):
     """CanvasKeyboard used by VKeyboard."""
     def __init__(self, root = None, *, layout : tuple = kl_qwerty, key_color : str = 'white', text_color : str = 'black', swipe_color : str = 'blue', delta : int = 5, **keyargs):
@@ -39,7 +56,6 @@ class CanvasKeyboard(tk.Canvas):
         self.text_color = text_color
         self.swipe_color = swipe_color
         self.prev_coords = None
-        self.prev_letters = []
         self.in_movement = False
         self.delta = delta
         self.delta_square = delta ** 2
@@ -73,20 +89,14 @@ class CanvasKeyboard(tk.Canvas):
             self.prev_coords = (event.x, event.y)
         else:
             return # step too small --- ignore
-        # TODO: send letter information
-        _letters = self._get_letters(*self.prev_coords)
-        if _letters != self.prev_letters:
-            print(_letters)
-            self.prev_letters = _letters
+        g_keyswipe.put_nowait(self._get_letters(*self.prev_coords))
 
     def _release(self, event : tk.Event):
         if self.in_movement:
             self.delete('swipe')
             self.prev_coords = None
             self.in_movement = False
-            # TODO: send end-of-path signal
-            self.prev_letters = []
-            print([])
+            g_keyswipe.put_nowait([])
         else:
             _match = self.find_overlapping(event.x - self.delta,
                                            event.y - self.delta,
@@ -197,4 +207,11 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Keyboard Swiping")
     app = VKeyboard(root)
+    stop_threads = threading.Event()
+    send_thread = threading.Thread(target=write_changes, args=(stop_threads,))
+
+    send_thread.start()
     app.mainloop()
+
+    stop_threads.set()
+    send_thread.join()
