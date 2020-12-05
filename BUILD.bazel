@@ -34,3 +34,9 @@ cc_binary(
     ":swipe-prediction",
   ],
 )
+
+py_binary(
+  name = "keyboard",
+  srcs = ["src/keyboard.py"],
+  data = [":swipe"],
+)

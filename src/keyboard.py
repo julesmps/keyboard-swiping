@@ -7,12 +7,15 @@ __status__ = "Development"
 import tkinter as tk
 from tkinter import N,S,E,W
 import threading, queue
+import subprocess
+from subprocess import PIPE
 
 kl_qwerty = (
     ('Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'),
     ('A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'),
     ('Z', 'X', 'C', 'V', 'B', 'N', 'M')
 )
+BUILD_PATH = "bazel-bin/"
 
 def dist_square(r1 : tuple, r2 : tuple) -> int:
     assert len(r1) == len(r2), "r1 and r2 must be the same size"
@@ -32,20 +35,31 @@ def get_first_keycode(strings : tuple) -> str:
     return ""
 
 g_keyswipe = queue.SimpleQueue()
+g_suggestions = queue.SimpleQueue()
 
-def write_changes(e : threading.Event):
+def write_changes(sb : subprocess.Popen):
     prev_letters = []
-    while True:
-        if e.is_set():
-            break
+    while sb.poll() is None:
         try:
             letters = g_keyswipe.get(timeout=1)
             if letters != prev_letters:
-                print(letters)
+                sb.stdin.write(f'{len(letters)}\n')
+                for letter in letters:
+                    sb.stdin.write(f'{letter}\n')
+                sb.stdin.flush()
                 prev_letters = letters
+
         except Exception as _:
             pass
 
+def read_changes(sb : subprocess.Popen):
+    rcv = []
+    target_length = 4
+    while sb.poll() is None:
+        rcv.append(sb.stdout.readline())
+        if len(rcv) >= target_length:
+            g_suggestions.put_nowait(tuple(rcv))
+            rcv = []
 
 class CanvasKeyboard(tk.Canvas):
     """CanvasKeyboard used by VKeyboard."""
@@ -162,6 +176,9 @@ class VKeyboard(tk.Frame):
         self.key_color = key_color
         self.text_color = text_color
         self._create_widgets()
+        self._create_bindings()
+
+        self.master.after(1000, self._update_suggestions)
 
     def write(self, msg : str):
         self.text.insert(tk.END, msg)
@@ -172,6 +189,21 @@ class VKeyboard(tk.Frame):
     def copy_to_clipboard(self):
         self.clipboard_clear()
         self.clipboard_append(self.text.get())
+
+    def _create_bindings(self):
+        for i in range(len(self.suggestions)):
+            self.suggest_text[i].bind('<Button-1><ButtonRelease-1>',
+                lambda e, i=i: self.write(self.suggestions[i].get()[0:-1] + ' '))
+
+    def _update_suggestions(self):
+        try:
+            if(not g_suggestions.empty()):
+                new_suggestions = g_suggestions.get(timeout=1)
+                for i in range(len(self.suggestions)):
+                    self.suggestions[i].set(new_suggestions[i])
+        except Exception as _:
+            pass
+        self.master.after(200, self._update_suggestions)
 
     def _create_widgets(self):
         self.text_frame = tk.Frame(self, bg=self.bg_color)
@@ -199,19 +231,26 @@ class VKeyboard(tk.Frame):
         self.suggest_frame.grid(column=0, row=1, sticky=(E,W))
         for i in range(len(self.suggest_text)):
             self.suggest_text[i].grid(column=i, row=0, sticky=(E,W), pady=3)
+            self.suggest_frame.columnconfigure(i, weight=1)
         self.canvas.grid(column=0, row=2, padx=55, pady=3)
         self.text_frame.columnconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
+
 if __name__ == "__main__":
+    prediction = subprocess.Popen([f'./{BUILD_PATH}swipe'], stdin=PIPE, stdout=PIPE, encoding='UTF-8')
     root = tk.Tk()
     root.title("Keyboard Swiping")
     app = VKeyboard(root)
-    stop_threads = threading.Event()
-    send_thread = threading.Thread(target=write_changes, args=(stop_threads,))
+    send_changes = threading.Thread(target=write_changes, args=(prediction,))
+    rcv_changes = threading.Thread(target=read_changes, args=(prediction,))
 
-    send_thread.start()
+    send_changes.start()
+    rcv_changes.start()
     app.mainloop()
 
-    stop_threads.set()
-    send_thread.join()
+    prediction.stdin.write("-1\n")
+    prediction.stdin.flush()
+    prediction.wait()
+    rcv_changes.join()
+    send_changes.join()
