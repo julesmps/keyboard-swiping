@@ -6,6 +6,7 @@
 #include <cctype>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <sstream>
 #include <stack>
 #include <utility>
@@ -265,10 +266,15 @@ void read_from_file(Trie& trie, const std::string& filename) {
 void read_file_with_frequency(Trie& trie,
       std::unordered_map<std::string,std::size_t>& map,
       const char* filename,
-      char separator) {
+      char separator,
+      bool has_header) {
   std::ifstream is(filename);
   std::string line, word, freq;
   std::istringstream ls;
+
+  if(has_header)
+    is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
   while(std::getline(is, line)) {
     if(line.empty())
       continue;
@@ -286,8 +292,10 @@ void read_file_with_frequency(Trie& trie,
 
 void read_file_with_frequency(Trie& trie,
       std::unordered_map<std::string,std::size_t>& map,
-      const std::string& filename,char separator) {
-  read_file_with_frequency(trie, map, filename.c_str(), separator);
+      const std::string& filename,
+      char separator,
+      bool has_header) {
+  read_file_with_frequency(trie, map, filename.c_str(), separator, has_header);
 }
 
 std::istream& operator>>(std::istream& is, Trie& trie) {

@@ -117,11 +117,13 @@ void read_from_file(Trie& trie, const std::string& filename);
 void read_file_with_frequency(Trie& trie,
       std::unordered_map<std::string,std::size_t>& map,
       const char* filename,
-      char separator = ' ');
+      char separator = ' ',
+      bool has_header = true);
 void read_file_with_frequency(Trie& trie,
       std::unordered_map<std::string,std::size_t>& map,
       const std::string& filename,
-      char separator = ' ');
+      char separator = ' ',
+      bool has_header = true);
 std::istream& operator>>(std::istream& is, Trie& trie);
 
 #endif /* end of include guard: KEYBOARD_SWIPING_TRIE_H */
