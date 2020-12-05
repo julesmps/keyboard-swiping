@@ -26,3 +26,11 @@ cc_library(
   ],
   visibility = ["//src/test:__pkg__"],
 )
+
+cc_binary(
+  name = "swipe",
+  srcs = ["src/swipe.cpp"],
+  deps = [
+    ":swipe-prediction",
+  ],
+)
