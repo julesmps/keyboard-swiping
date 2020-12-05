@@ -4,9 +4,12 @@
 #include "src/trie.h"
 
 #include <cctype>
+#include <fstream>
 #include <functional>
+#include <sstream>
 #include <stack>
 #include <utility>
+#include "utils.h"
 
 using Node = Trie::Node;
 
@@ -17,23 +20,10 @@ const std::vector<char> ALLOWED_CHAR_S = { '-' };
 
 namespace {
 
-template <typename T, class Container, class Compare>
-bool contains(const Container& cont, const T& value, const Compare& comp) {
-  for(auto it = cont.cbegin(); it != cont.cend(); ++it)
-    if(comp(*it, value))
-      return true;
-  return false;
-}
-
-template <typename T, class Container>
-bool contains(const Container& cont, const T& value) {
-  return contains(cont, value, std::equal_to<T>());
-}
-
 bool is_allowable(char c) {
-  return contains(ALLOWED_CHAR_G, c,
+  return utils::contains(ALLOWED_CHAR_G, c,
             [](std::function<bool(char)> f, char c) -> bool { return f(c); })
-      || contains(ALLOWED_CHAR_S, c);
+      || utils::contains(ALLOWED_CHAR_S, c);
 }
 
 std::pair<bool,char> find_key(const Node& node, const Node* child) {
@@ -192,7 +182,7 @@ Node::~Node() {
 }
 
 bool Node::contains_word(const std::string& word) const {
-  return ::contains(words_, word);
+  return utils::contains(words_, word);
 }
 
 void Node::remove_word(const std::string& word) {
@@ -260,4 +250,43 @@ void Node::delete_children() {
     if(child != nullptr)
     delete child;
   });
+}
+
+void read_from_file(Trie& trie, const char* filename) {
+  std::ifstream is(filename);
+  while(is >> trie);
+  is.close();
+}
+
+void read_from_file(Trie& trie, const std::string& filename) {
+  read_from_file(trie, filename.c_str());
+}
+
+void read_file_with_frequency(Trie& trie,
+      std::unordered_map<std::string,std::size_t>& map,
+      const std::string& filename,
+      char separator) {
+  std::ifstream is(filename);
+  std::string line, word, freq;
+  std::istringstream ls;
+  while(std::getline(is, line)) {
+    if(line.empty())
+      continue;
+    ls = std::istringstream(line);
+
+    std::getline(ls, word, separator);
+    utils::to_lower(word);
+    trie.insert(word);
+
+    std::getline(ls, freq);
+    map[word] += std::stoul(freq);
+  }
+  is.close();
+}
+
+std::istream& operator>>(std::istream& is, Trie& trie) {
+  std::string line;
+  is >> line;
+  trie.insert(line);
+  return is;
 }

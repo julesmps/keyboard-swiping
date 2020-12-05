@@ -4,25 +4,36 @@
 #ifndef KEYBOARD_SWIPING_UTILS_H
 #define KEYBOARD_SWIPING_UTILS_H
 
-#include <istream>
+#include <cctype>
+#include <functional>
 #include <string>
-#include <unordered_map>
-#include "src/trie.h"
 
 namespace utils {
 
-void to_lower(std::string& str);
-std::string to_lower(const std::string& str);
+  void to_lower(std::string& str) {
+    for(auto iter = str.begin(); iter != str.end(); ++iter)
+      *iter = (unsigned char) std::tolower((unsigned char) *iter);
+  }
 
-// Note: These functions don't internally handle any possible exception.
-//  Calls to these functions should be contained in a try-catch block
-void read_from_file(Trie& trie, const char* filename);
-void read_from_file(Trie& trie, const std::string& filename);
-void read_file_with_frequency(Trie& trie,
-      std::unordered_map<std::string,std::size_t>& map,
-      const std::string& filename,
-      char separator = ' ');
-std::istream& operator>>(std::istream& is, Trie& trie);
+  std::string to_lower(const std::string& str) {
+    std::string result;
+    for(char c : str)
+      result += (unsigned char) std::tolower((unsigned char) c);
+    return result;
+  }
+
+  template <typename T, class Container, class Compare>
+  bool contains(const Container& cont, const T& value, const Compare& comp) {
+    for(auto it = cont.cbegin(); it != cont.cend(); ++it)
+      if(comp(*it, value))
+        return true;
+    return false;
+  }
+
+  template <typename T, class Container>
+  bool contains(const Container& cont, const T& value) {
+    return contains(cont, value, std::equal_to<T>());
+  }
 
 } /* utils */
 
