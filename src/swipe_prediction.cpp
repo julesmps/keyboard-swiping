@@ -8,10 +8,11 @@
 #include <functional>
 #include <queue>
 #include <utility>
+#include "src/trie.h"
 #include "src/utils.h"
 
 Swipe::Swipe(const std::string& filename) {
-  utils::read_file_with_frequency(trie_, frequencies_, filename, ','); // CSV
+  read_file_with_frequency(trie_, frequencies_, filename, ','); // CSV
 }
 
 Swipe::Swipe(const Trie& trie, const FrequencyMap& freq)

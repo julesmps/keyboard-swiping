@@ -3,16 +3,16 @@ cc_library(
   name = "trie",
   hdrs = ["src/trie.h"],
   srcs = ["src/trie.cpp"],
+  deps = [
+    ":utils",
+  ],
   visibility = ["//src/test:__pkg__"],
 )
 
 cc_library(
   name = "utils",
   hdrs = ["src/utils.h"],
-  srcs = ["src/utils.cpp"],
-  deps = [
-    ":trie",
-  ],
+  deps = [],
 )
 
 cc_library(
