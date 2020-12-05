@@ -18,11 +18,7 @@ using FrequencyMap = std::unordered_map<std::string, std::size_t>;
 class Swipe {
 public:
   Swipe(const std::string& filename);
-  template <class InputIt>
-  // Object pointed to by InputIt must have the following accessors:
-  //    | first (type std::string)
-  //    | second (type unsigned int)
-  Swipe(InputIt begin, InputIt end);
+  template <class InputIt> Swipe(InputIt begin, InputIt end);
   Swipe(const Trie& trie, const FrequencyMap& freq);
 
   const std::vector<std::string>& insert(const std::string& word, std::size_t frequency);
@@ -40,6 +36,9 @@ private:
   std::set<char> previous_letters_;
 };
 
+// Object pointed to by InputIt must have the following accessors:
+//    | first (type std::string)
+//    | second (type unsigned int)
 template <class InputIt>
 Swipe::Swipe(InputIt begin, InputIt end) {
   for(InputIt iter = begin; iter != end; ++iter) {
