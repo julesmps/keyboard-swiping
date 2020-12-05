@@ -12,6 +12,7 @@ const unsigned int num_of_suggestions = 4;
 int main() {
   try {
     Swipe swipe(unigram);
+    std::cout << "READY" << std::endl;
 
     int code_or_num;
     std::vector<std::string> suggestions;

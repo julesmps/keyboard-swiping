@@ -242,9 +242,13 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Keyboard Swiping")
     app = VKeyboard(root)
+
+    # Wait for acknowledge/ready token before handing over control to
+    #   IO and UI threads / routines
+    prediction.stdout.readline()
+
     send_changes = threading.Thread(target=write_changes, args=(prediction,))
     rcv_changes = threading.Thread(target=read_changes, args=(prediction,))
-
     send_changes.start()
     rcv_changes.start()
     app.mainloop()
