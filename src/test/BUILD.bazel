@@ -4,7 +4,7 @@ cc_test(
   srcs = ["trie_test.cpp"],
   deps = [
     "//:trie",
-    "@googletest//:gtest_main",
+    "@gtest//:gtest_main",
   ],
 )
 
@@ -13,6 +13,6 @@ cc_test(
   srcs = ["swipe_prediction_test.cpp"],
   deps = [
     "//:swipe-prediction",
-    "@googletest//:gtest_main",
+    "@gtest//:gtest_main",
   ],
 )

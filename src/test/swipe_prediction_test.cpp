@@ -106,4 +106,4 @@ TEST_P(SwipePredictionTest, SuggestionsContains) {
   EXPECT_TRUE(contains(swipe.get(), GetParam().second));
 }
 
-INSTANTIATE_TEST_CASE_P(PredictionMatch, SwipePredictionTest, testing::ValuesIn(params));
+INSTANTIATE_TEST_SUITE_P(PredictionMatch, SwipePredictionTest, testing::ValuesIn(params));
