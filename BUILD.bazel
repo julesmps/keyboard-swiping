@@ -5,3 +5,23 @@ cc_library(
   srcs = ["src/trie.cpp"],
   visibility = ["//src/test:__pkg__"],
 )
+
+cc_library(
+  name = "utils",
+  hdrs = ["src/utils.h"],
+  srcs = ["src/utils.cpp"],
+  deps = [
+    ":trie",
+  ],
+)
+
+cc_library(
+  name = "swipe-prediction",
+  hdrs = ["src/swipe_prediction.h"],
+  srcs = ["src/swipe_prediction.cpp"],
+  deps = [
+    ":trie",
+    ":utils",
+  ],
+  visibility = ["//src/test:__pkg__"],
+)
