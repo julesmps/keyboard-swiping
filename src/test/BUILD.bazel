@@ -7,3 +7,12 @@ cc_test(
     "@googletest//:gtest_main",
   ],
 )
+
+cc_test(
+  name = "swipe_prediction-test",
+  srcs = ["swipe_prediction_test.cpp"],
+  deps = [
+    "//:swipe-prediction",
+    "@googletest//:gtest_main",
+  ],
+)

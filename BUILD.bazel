@@ -14,3 +14,14 @@ cc_library(
     ":trie",
   ],
 )
+
+cc_library(
+  name = "swipe-prediction",
+  hdrs = ["src/swipe_prediction.h"],
+  srcs = ["src/swipe_prediction.cpp"],
+  deps = [
+    ":trie",
+    ":utils",
+  ],
+  visibility = ["//src/test:__pkg__"],
+)
