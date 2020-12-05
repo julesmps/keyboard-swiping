@@ -11,7 +11,7 @@
 #include "src/trie.h"
 #include "src/utils.h"
 
-Swipe::Swipe(const std::string& filename) {
+Swipe::Swipe(const char* filename) {
   read_file_with_frequency(trie_, frequencies_, filename, ','); // CSV
 }
 

@@ -264,7 +264,7 @@ void read_from_file(Trie& trie, const std::string& filename) {
 
 void read_file_with_frequency(Trie& trie,
       std::unordered_map<std::string,std::size_t>& map,
-      const std::string& filename,
+      const char* filename,
       char separator) {
   std::ifstream is(filename);
   std::string line, word, freq;
@@ -282,6 +282,12 @@ void read_file_with_frequency(Trie& trie,
     map[word] += std::stoul(freq);
   }
   is.close();
+}
+
+void read_file_with_frequency(Trie& trie,
+      std::unordered_map<std::string,std::size_t>& map,
+      const std::string& filename,char separator) {
+  read_file_with_frequency(trie, map, filename.c_str(), separator);
 }
 
 std::istream& operator>>(std::istream& is, Trie& trie) {

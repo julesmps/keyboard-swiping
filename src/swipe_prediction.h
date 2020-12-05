@@ -17,7 +17,8 @@ using FrequencyMap = std::unordered_map<std::string, std::size_t>;
 
 class Swipe {
 public:
-  Swipe(const std::string& filename);
+  Swipe(const char* filename);
+  Swipe(const std::string& filename) : Swipe(filename.c_str()) {}
   template <class InputIt> Swipe(InputIt begin, InputIt end);
   Swipe(const Trie& trie, const FrequencyMap& freq);
 
