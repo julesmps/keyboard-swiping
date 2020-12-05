@@ -4,23 +4,13 @@
 #ifndef KEYBOARD_SWIPING_UTILS_H
 #define KEYBOARD_SWIPING_UTILS_H
 
-#include <cctype>
 #include <functional>
 #include <string>
 
 namespace utils {
 
-  void to_lower(std::string& str) {
-    for(auto iter = str.begin(); iter != str.end(); ++iter)
-      *iter = (unsigned char) std::tolower((unsigned char) *iter);
-  }
-
-  std::string to_lower(const std::string& str) {
-    std::string result;
-    for(char c : str)
-      result += (unsigned char) std::tolower((unsigned char) c);
-    return result;
-  }
+  void to_lower(std::string& str);
+  std::string to_lower(const std::string& str);
 
   template <typename T, class Container, class Compare>
   bool contains(const Container& cont, const T& value, const Compare& comp) {
