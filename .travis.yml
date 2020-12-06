@@ -1,0 +1,20 @@
+distro: bionic
+arch: amd64
+
+include:
+  - compiler: gcc
+  - compiler: clang
+
+install:
+  - ./ci/install.sh
+  - source ./ci/env.sh
+
+script:
+  - bazel test //...:all
+
+addons:
+  apt:
+    packages:
+      - g++
+      - clang
+      update: true
