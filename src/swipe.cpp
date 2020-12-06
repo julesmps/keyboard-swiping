@@ -26,6 +26,10 @@ int main() {
         suggestions = std::move(swipe.get(num_of_suggestions));
         for(const std::string& s : suggestions)
           std::cout << s << '\n';
+        // Assure that `num_of_suggestions` messages are always sent
+        for(std::size_t i = suggestions.size(); i < num_of_suggestions; i++)
+          std::cout << '\n';
+
         std::cout << std::flush;
         swipe.reset();
       } else {
