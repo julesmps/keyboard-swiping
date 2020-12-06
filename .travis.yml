@@ -1,9 +1,9 @@
-distro: bionic
+dist: bionic
 arch: amd64
 
-include:
-  - compiler: gcc
-  - compiler: clang
+compiler:
+  - gcc
+  - clang
 
 install:
   - ./ci/install.sh
