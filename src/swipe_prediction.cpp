@@ -65,10 +65,14 @@ void Swipe::advance(const std::set<char>& candidate_letters) {
 }
 
 std::vector<std::string> Swipe::get(std::size_t max_suggestions) const {
+  const std::size_t letter_dif = 2;
   std::priority_queue<std::string,
                       std::vector<std::string>,
                       std::function<bool(const std::string&,const std::string&)>
         >heap([&](const std::string& s1, const std::string& s2) {
+    if(std::max(s1.size(), s2.size()) - std::min(s1.size(), s2.size()) > letter_dif)
+      return s1.size() < s2.size();
+
     std::string s1_lower = std::move(utils::to_lower(s1));
     std::string s2_lower = std::move(utils::to_lower(s2));
 
