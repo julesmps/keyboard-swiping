@@ -82,9 +82,9 @@ class CanvasKeyboard(tk.Canvas):
 
     def _get_letters(self, x : int, y : int) -> list:
         _keys = self.find_overlapping(x - self.key_delta,
-                                         y - self.key_delta,
-                                         x + self.key_delta,
-                                         y + self.key_delta
+                                      y - self.key_delta,
+                                      x + self.key_delta,
+                                      y + self.key_delta
         )
         _letters = []
         for id in _keys:
@@ -101,14 +101,14 @@ class CanvasKeyboard(tk.Canvas):
             self.in_movement = True
             self.create_line(self.prev_coords[0], self.prev_coords[1], event.x, event.y, width=3, fill=self.swipe_color, tags=('swipe'))
             self.prev_coords = (event.x, event.y)
+            g_keyswipe.put_nowait(self._get_letters(*self.prev_coords))
         else:
             return # step too small --- ignore
-        g_keyswipe.put_nowait(self._get_letters(*self.prev_coords))
 
     def _release(self, event : tk.Event):
+        self.prev_coords = None
         if self.in_movement:
             self.delete('swipe')
-            self.prev_coords = None
             self.in_movement = False
             g_keyswipe.put_nowait([])
         else:
